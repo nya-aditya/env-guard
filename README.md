@@ -4,8 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-87%20passed-success.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-97.5%25-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-87%20passed-success.svg)](<>)
+[![Coverage](https://img.shields.io/badge/coverage-97.5%25-brightgreen.svg)](<>)
 
 Protect your Node.js applications from invalid, missing, incorrectly typed, or unsafe environment configurations before your server even starts.
 
@@ -24,10 +24,10 @@ In Node.js applications, `process.env` presents significant operational risks:
 
 ```js
 // ❌ With raw process.env
-const port = parseInt(process.env.PORT, 10);  // NaN if missing/invalid!
-const debug = process.env.DEBUG === "true";   // Manual boilerplate
-const db = process.env.DATABASE_URL;          // Undefined until query fails!
-console.log(process.env);                     // Leaks credentials to logs!
+const port = parseInt(process.env.PORT, 10); // NaN if missing/invalid!
+const debug = process.env.DEBUG === "true"; // Manual boilerplate
+const db = process.env.DATABASE_URL; // Undefined until query fails!
+console.log(process.env); // Leaks credentials to logs!
 ```
 
 ```js
@@ -37,12 +37,12 @@ import { defineConfig, safeView } from "env-guard";
 const config = defineConfig({
   PORT: { type: "number", default: 3000, min: 1024, max: 65535 },
   DEBUG: { type: "boolean", default: false },
-  DATABASE_URL: { type: "string", required: true, secret: true }
+  DATABASE_URL: { type: "string", required: true, secret: true },
 });
 
-console.log(config.PORT);       // 3000 (typed number)
-console.log(config.DEBUG);      // false (typed boolean)
-console.log(safeView(config));  // { PORT: 3000, DEBUG: false, DATABASE_URL: '********' }
+console.log(config.PORT); // 3000 (typed number)
+console.log(config.DEBUG); // false (typed boolean)
+console.log(safeView(config)); // { PORT: 3000, DEBUG: false, DATABASE_URL: '********' }
 ```
 
 ---
@@ -125,26 +125,27 @@ console.log("Active configuration:", safeView(config));
 
 Each field in your schema supports the following properties:
 
-| Property | Type | Description |
-| :--- | :--- | :--- |
-| `type` | `"string"` \| `"number"` \| `"boolean"` \| `"url"` \| `"json"` | Desired target data type. Defaults to `"string"`. |
-| `required` | `boolean` | When `true`, missing or blank environment variables trigger a `MISSING_REQUIRED` error. |
-| `default` | `any` \| `() => any` | Fallback value if variable is omitted from environment. |
-| `secret` | `boolean` | When `true`, redacts value in `safeView()`, `maskConfig()`, and error reports. |
-| `enum` | `Array<any>` | Whitelist of acceptable values. |
-| `min` | `number` | Minimum allowed value (for `"number"` type). |
-| `max` | `number` | Maximum allowed value (for `"number"` type). |
-| `minLength` | `number` | Minimum string character length (for `"string"` type). |
-| `maxLength` | `number` | Maximum string character length (for `"string"` type). |
-| `pattern` | `RegExp` \| `string` | Regular expression pattern the string must match. |
-| `validate` | `(val: any) => boolean \| string` | Custom validator function. Return `true` to pass, or `false` / error string to fail. |
-| `allowEmpty` | `boolean` | Allow empty strings when `required: true`. Defaults to `false`. |
+| Property     | Type                                                           | Description                                                                             |
+| :----------- | :------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+| `type`       | `"string"` \| `"number"` \| `"boolean"` \| `"url"` \| `"json"` | Desired target data type. Defaults to `"string"`.                                       |
+| `required`   | `boolean`                                                      | When `true`, missing or blank environment variables trigger a `MISSING_REQUIRED` error. |
+| `default`    | `any` \| `() => any`                                           | Fallback value if variable is omitted from environment.                                 |
+| `secret`     | `boolean`                                                      | When `true`, redacts value in `safeView()`, `maskConfig()`, and error reports.          |
+| `enum`       | `Array<any>`                                                   | Whitelist of acceptable values.                                                         |
+| `min`        | `number`                                                       | Minimum allowed value (for `"number"` type).                                            |
+| `max`        | `number`                                                       | Maximum allowed value (for `"number"` type).                                            |
+| `minLength`  | `number`                                                       | Minimum string character length (for `"string"` type).                                  |
+| `maxLength`  | `number`                                                       | Maximum string character length (for `"string"` type).                                  |
+| `pattern`    | `RegExp` \| `string`                                           | Regular expression pattern the string must match.                                       |
+| `validate`   | `(val: any) => boolean \| string`                              | Custom validator function. Return `true` to pass, or `false` / error string to fail.    |
+| `allowEmpty` | `boolean`                                                      | Allow empty strings when `required: true`. Defaults to `false`.                         |
 
 ---
 
 ## Supported Types
 
 ### 1. `string`
+
 Accepts text values. Supports `minLength`, `maxLength`, and `pattern`.
 
 ```js
@@ -156,6 +157,7 @@ APP_NAME: {
 ```
 
 ### 2. `number`
+
 Parses numeric strings into finite JavaScript numbers (integers or floating point). Rejects non-numeric strings, `NaN`, and `Infinity`.
 
 ```js
@@ -168,7 +170,9 @@ PORT: {
 ```
 
 ### 3. `boolean`
+
 Coerces common truthy and falsy representations (case-insensitive):
+
 - **Truthy**: `"true"`, `"1"`, `"yes"`, `"t"`, `"on"`, `true`
 - **Falsy**: `"false"`, `"0"`, `"no"`, `"f"`, `"off"`, `false`
 
@@ -180,6 +184,7 @@ ENABLE_METRICS: {
 ```
 
 ### 4. `url`
+
 Validates standard URL formats (HTTP, HTTPS, Postgres, etc.) using the native WHATWG URL parser.
 
 ```js
@@ -190,6 +195,7 @@ WEBHOOK_URL: {
 ```
 
 ### 5. `json`
+
 Parses stringified JSON arrays and objects.
 
 ```js
@@ -204,7 +210,9 @@ CORS_ORIGINS: {
 ## Validation Rules
 
 ### Required Values & Defaults Precedence
+
 If a variable is missing:
+
 - If `required: true` is set, `env-guard` immediately fails with `MISSING_REQUIRED` (required check takes precedence).
 - If `required` is not true and `default` is defined, the default value (or return value of a default factory function) is applied.
 
@@ -216,6 +224,7 @@ DATABASE_URL: {
 ```
 
 ### Enum Validation
+
 Enforces that a variable strictly matches one of the specified allowed values:
 
 ```js
@@ -227,6 +236,7 @@ LOG_LEVEL: {
 ```
 
 ### Range Validation
+
 Enforces lower and upper bounds for numbers:
 
 ```js
@@ -238,6 +248,7 @@ MAX_WORKERS: {
 ```
 
 ### Pattern / Regex Validation
+
 Enforces string format requirements:
 
 ```js
@@ -248,6 +259,7 @@ TENANT_ID: {
 ```
 
 ### Custom Validators
+
 Run arbitrary logic. Support both boolean return and descriptive string return:
 
 ```js
@@ -276,7 +288,7 @@ import { defineConfig, safeView, maskConfig } from "env-guard";
 
 const config = defineConfig({
   API_SECRET: { type: "string", required: true, secret: true },
-  PORT: { type: "number", default: 3000 }
+  PORT: { type: "number", default: 3000 },
 });
 
 // safeView: convenient one-line masking
@@ -320,31 +332,31 @@ All errors thrown by `env-guard` are instances of `ConfigurationError` and inclu
 try {
   defineConfig(schema);
 } catch (err) {
-  console.error(err.code);      // e.g. "MISSING_REQUIRED"
-  console.error(err.variable);  // e.g. "DATABASE_URL"
-  console.error(err.expected);  // e.g. "Value of type 'string'"
-  console.error(err.received);  // e.g. "[REDACTED]" (if secret)
+  console.error(err.code); // e.g. "MISSING_REQUIRED"
+  console.error(err.variable); // e.g. "DATABASE_URL"
+  console.error(err.expected); // e.g. "Value of type 'string'"
+  console.error(err.received); // e.g. "[REDACTED]" (if secret)
   console.error(err.message);
 }
 ```
 
 ### Available Error Codes
 
-| Code | Explanation |
-| :--- | :--- |
-| `MISSING_REQUIRED` | Variable is marked `required: true` but was missing or empty |
-| `INVALID_TYPE` | Unsupported or mismatched schema type |
-| `INVALID_NUMBER` | Could not convert string to a valid finite number |
-| `INVALID_BOOLEAN` | Could not parse boolean representation |
-| `INVALID_URL` | Malformed URL string |
-| `INVALID_JSON` | Malformed JSON string |
-| `INVALID_ENUM` | Value is not in the specified `enum` array |
-| `OUT_OF_RANGE` | Numeric value violates `min` or `max` constraint |
-| `INVALID_LENGTH` | String length violates `minLength` or `maxLength` |
-| `INVALID_PATTERN` | String does not match RegExp `pattern` |
-| `CUSTOM_VALIDATION_FAILED` | Custom validator returned `false` or an error string |
-| `CONFIGURATION_SUMMARY_ERROR` | Thrown in `collectErrors` mode with multiple violations |
-| `INVALID_SCHEMA` | Malformed schema definition provided to `defineConfig` |
+| Code                          | Explanation                                                  |
+| :---------------------------- | :----------------------------------------------------------- |
+| `MISSING_REQUIRED`            | Variable is marked `required: true` but was missing or empty |
+| `INVALID_TYPE`                | Unsupported or mismatched schema type                        |
+| `INVALID_NUMBER`              | Could not convert string to a valid finite number            |
+| `INVALID_BOOLEAN`             | Could not parse boolean representation                       |
+| `INVALID_URL`                 | Malformed URL string                                         |
+| `INVALID_JSON`                | Malformed JSON string                                        |
+| `INVALID_ENUM`                | Value is not in the specified `enum` array                   |
+| `OUT_OF_RANGE`                | Numeric value violates `min` or `max` constraint             |
+| `INVALID_LENGTH`              | String length violates `minLength` or `maxLength`            |
+| `INVALID_PATTERN`             | String does not match RegExp `pattern`                       |
+| `CUSTOM_VALIDATION_FAILED`    | Custom validator returned `false` or an error string         |
+| `CONFIGURATION_SUMMARY_ERROR` | Thrown in `collectErrors` mode with multiple violations      |
+| `INVALID_SCHEMA`              | Malformed schema definition provided to `defineConfig`       |
 
 ### Error Collection Mode
 
@@ -364,6 +376,7 @@ try {
 ## API Reference
 
 ### `defineConfig(schema, options)`
+
 Main configuration builder.
 
 - **`schema`** (`Record<string, Rule>`): Schema definition.
@@ -376,15 +389,19 @@ Main configuration builder.
   - `freeze` (`boolean`, default: `true`): `Object.freeze` the returned config object.
 
 ### `safeView(config, options)`
+
 Returns a clone of `config` with all fields marked `secret: true` masked.
 
 ### `maskConfig(config, schema, options)`
+
 Masks secrets in a configuration object using an explicit or attached schema.
 
 ### `parseEnv(src)`
+
 Parses a dotenv-formatted string into key-value pairs.
 
 ### `parseEnvFile(filePath)`
+
 Reads and parses a `.env` file from disk.
 
 ---

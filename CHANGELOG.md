@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - Initial Release
 
 ### Added
+
 - Schema-based environment configuration with `defineConfig()`.
 - Built-in type coercion and validation for `string`, `number`, `boolean`, `url`, and `json`.
 - Strict required value checking and default value fallback resolution.
