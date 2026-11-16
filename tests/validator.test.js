@@ -133,6 +133,55 @@ describe("validateField", () => {
       expect(validateField("CONN", "150", { type: "number", max: 100 }).valid).toBe(false);
     });
   });
+
+  describe("string validation (minLength & maxLength)", () => {
+    it("validates string minLength", () => {
+      const rule = { type: "string", minLength: 10 };
+      expect(validateField("KEY", "1234567890", rule).valid).toBe(true);
+      const res = validateField("KEY", "short", rule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.INVALID_LENGTH);
+      expect(res.error.message).toContain("shorter than minLength");
+    });
+
+    it("validates string maxLength", () => {
+      const rule = { type: "string", maxLength: 5 };
+      expect(validateField("NAME", "alice", rule).valid).toBe(true);
+      const res = validateField("NAME", "toolongusername", rule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.INVALID_LENGTH);
+      expect(res.error.message).toContain("exceeds maxLength");
+    });
+  });
+
+  describe("pattern validation (regex)", () => {
+    const patternRule = {
+      type: "string",
+      pattern: /^app-[a-z]+$/,
+    };
+
+    it("accepts matching patterns", () => {
+      expect(validateField("APP_ENV", "app-prod", patternRule).valid).toBe(true);
+    });
+
+    it("rejects non-matching strings with INVALID_PATTERN", () => {
+      const res = validateField("APP_ENV", "bad-format", patternRule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.INVALID_PATTERN);
+      expect(res.error.message).toContain("does not match expected pattern");
+      expect(res.error.received).toBe("bad-format");
+    });
+
+    it("does not leak secret values in pattern validation errors", () => {
+      const res = validateField("SECRET_TOKEN", "invalid-token", {
+        type: "string",
+        pattern: /^secret-[0-9]+$/,
+        secret: true,
+      });
+      expect(res.valid).toBe(false);
+      expect(res.error.received).toBe("[REDACTED]");
+    });
+  });
 });
 
 describe("validateSchema", () => {

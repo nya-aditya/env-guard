@@ -197,6 +197,66 @@ export function validateField(key, rawValue, rule = {}) {
     }
   }
 
+  // Validate string length and pattern for strings
+  if (typeof conversionResult.value === "string") {
+    const str = conversionResult.value;
+
+    if (rule.minLength !== undefined && str.length < rule.minLength) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `String length for ${key} (${str.length}) is shorter than minLength (${rule.minLength}).`,
+          {
+            code: ERROR_CODES.INVALID_LENGTH,
+            variable: key,
+            expected: `Length >= ${rule.minLength}`,
+            received: str.length,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+
+    if (rule.maxLength !== undefined && str.length > rule.maxLength) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `String length for ${key} (${str.length}) exceeds maxLength (${rule.maxLength}).`,
+          {
+            code: ERROR_CODES.INVALID_LENGTH,
+            variable: key,
+            expected: `Length <= ${rule.maxLength}`,
+            received: str.length,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+
+    if (rule.pattern) {
+      const reg =
+        rule.pattern instanceof RegExp
+          ? rule.pattern
+          : new RegExp(rule.pattern);
+
+      if (!reg.test(str)) {
+        return {
+          valid: false,
+          error: new ConfigurationError(
+            `Value for ${key} does not match expected pattern ${reg.toString()}.`,
+            {
+              code: ERROR_CODES.INVALID_PATTERN,
+              variable: key,
+              expected: reg.toString(),
+              received: isSecret ? "[REDACTED]" : str,
+              secret: isSecret,
+            }
+          ),
+        };
+      }
+    }
+  }
+
   return { valid: true, value: conversionResult.value };
 }
 
