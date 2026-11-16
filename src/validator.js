@@ -18,16 +18,13 @@ export function resolveValueWithDefaults(key, rawValue, rule = {}) {
     if (rule.required === true) {
       return {
         valid: false,
-        error: new ConfigurationError(
-          `${key} is required but was not provided.`,
-          {
-            code: ERROR_CODES.MISSING_REQUIRED,
-            variable: key,
-            expected: `Value of type "${rule.type || "string"}"`,
-            received: undefined,
-            secret: isSecret,
-          }
-        ),
+        error: new ConfigurationError(`${key} is required but was not provided.`, {
+          code: ERROR_CODES.MISSING_REQUIRED,
+          variable: key,
+          expected: `Value of type "${rule.type || "string"}"`,
+          received: undefined,
+          secret: isSecret,
+        }),
       };
     }
 
@@ -47,16 +44,13 @@ export function resolveValueWithDefaults(key, rawValue, rule = {}) {
     if (rule.required === true && !rule.allowEmpty) {
       return {
         valid: false,
-        error: new ConfigurationError(
-          `${key} is required and cannot be empty.`,
-          {
-            code: ERROR_CODES.MISSING_REQUIRED,
-            variable: key,
-            expected: `Non-empty ${rule.type || "string"}`,
-            received: '""',
-            secret: isSecret,
-          }
-        ),
+        error: new ConfigurationError(`${key} is required and cannot be empty.`, {
+          code: ERROR_CODES.MISSING_REQUIRED,
+          variable: key,
+          expected: `Non-empty ${rule.type || "string"}`,
+          received: '""',
+          secret: isSecret,
+        }),
       };
     }
 
@@ -235,9 +229,7 @@ export function validateField(key, rawValue, rule = {}) {
 
     if (rule.pattern) {
       const reg =
-        rule.pattern instanceof RegExp
-          ? rule.pattern
-          : new RegExp(rule.pattern);
+        rule.pattern instanceof RegExp ? rule.pattern : new RegExp(rule.pattern);
 
       if (!reg.test(str)) {
         return {
@@ -332,4 +324,3 @@ export function validateSchema(schema, rawEnv = {}) {
     errors,
   };
 }
-

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { defineConfig, maskConfig, safeView, ConfigurationError, ERROR_CODES } from "../src/index.js";
+import { defineConfig, safeView, ERROR_CODES } from "../src/index.js";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";

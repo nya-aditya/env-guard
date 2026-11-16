@@ -65,9 +65,7 @@ describe("validateField", () => {
       valid: true,
       value: "https://api.io/",
     });
-    expect(
-      validateField("DATA", '{"ok":true}', { type: "json" })
-    ).toEqual({
+    expect(validateField("DATA", '{"ok":true}', { type: "json" })).toEqual({
       valid: true,
       value: { ok: true },
     });
@@ -149,7 +147,9 @@ describe("validateField", () => {
       expect(validateField("CONN", "5", { type: "number", min: 1 }).valid).toBe(true);
       expect(validateField("CONN", "-2", { type: "number", min: 1 }).valid).toBe(false);
       expect(validateField("CONN", "50", { type: "number", max: 100 }).valid).toBe(true);
-      expect(validateField("CONN", "150", { type: "number", max: 100 }).valid).toBe(false);
+      expect(validateField("CONN", "150", { type: "number", max: 100 }).valid).toBe(
+        false
+      );
     });
   });
 

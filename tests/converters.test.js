@@ -93,7 +93,7 @@ describe("converters", () => {
         success: true,
         value: { darkMode: true, theme: "dark" },
       });
-      expect(convertJson('[1,2,3]')).toEqual({
+      expect(convertJson("[1,2,3]")).toEqual({
         success: true,
         value: [1, 2, 3],
       });

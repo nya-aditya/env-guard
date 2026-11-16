@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 
 /**
  * Parses a dotenv-formatted string into an object of key-value pairs.
