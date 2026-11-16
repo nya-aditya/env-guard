@@ -56,6 +56,32 @@ describe("npm pack and external consumption", () => {
       });
 
       expect(runOutput).toBe("");
+
+      // Also test CommonJS require() interop
+      const cjsVerificationScript = `
+        const { defineConfig, safeView } = require("env-guard");
+        const assert = require("node:assert");
+
+        const config = defineConfig({
+          PORT: { type: "number", default: 9999 },
+          API_KEY: { type: "string", secret: true }
+        }, {
+          source: { API_KEY: "secret-cjs-token" },
+          loadEnv: false
+        });
+
+        assert.strictEqual(config.PORT, 9999);
+        assert.strictEqual(safeView(config).API_KEY, "********");
+      `;
+
+      fs.writeFileSync(path.join(consumerDir, "verify.cjs"), cjsVerificationScript);
+
+      const cjsRunOutput = execSync("node verify.cjs", {
+        cwd: consumerDir,
+        encoding: "utf8",
+      });
+
+      expect(cjsRunOutput).toBe("");
     } finally {
       // Clean up tarball and test directory
       if (fs.existsSync(tarballPath)) {
