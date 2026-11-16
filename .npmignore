@@ -1,0 +1,23 @@
+# Development files
+tests/
+examples/
+coverage/
+.github/
+.vscode/
+.idea/
+
+# Dotfiles
+.env
+.env.*
+!.env.example
+.gitignore
+.npmignore
+.eslintrc*
+eslint.config.*
+.prettierrc*
+vitest.config.*
+
+# Temp / logs
+*.log
+*.tgz
+.DS_Store

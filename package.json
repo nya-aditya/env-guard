@@ -1,0 +1,61 @@
+{
+  "name": "env-guard",
+  "version": "1.0.0",
+  "description": "Schema-based environment configuration and validation for Node.js",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "env",
+    "environment",
+    "schema",
+    "validation",
+    "config",
+    "configuration",
+    "env-guard",
+    "secrets",
+    "masking",
+    "type-safe",
+    "dotenv"
+  ],
+  "author": "Aditya <aditya@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nya-aditya/env-guard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nya-aditya/env-guard.git/issues"
+  },
+  "homepage": "https://github.com/nya-aditya/env-guard#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.15.0",
+    "prettier": "^3.10.1",
+    "vitest": "^5.1.0"
+  }
+}
