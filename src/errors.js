@@ -38,7 +38,7 @@ export class ConfigurationError extends Error {
     this.variable = options.variable || null;
     this.expected = options.expected !== undefined ? options.expected : null;
 
-    // Never leak secrets in error.received or message
+    // Never leak secrets in error.received or error.message
     if (options.secret) {
       this.received = "[REDACTED]";
     } else {
@@ -47,6 +47,8 @@ export class ConfigurationError extends Error {
 
     if (Array.isArray(options.errors)) {
       this.errors = options.errors;
+    } else {
+      this.errors = [];
     }
 
     if (Error.captureStackTrace) {
@@ -55,18 +57,38 @@ export class ConfigurationError extends Error {
   }
 
   /**
-   * Returns a clean, developer-friendly string representation of all errors.
+   * Returns a formatted multi-line summary of errors.
+   *
+   * @returns {string}
    */
   toDetailedString() {
     if (this.errors && this.errors.length > 0) {
       const header = `ConfigurationError: ${this.errors.length} configuration problem${
         this.errors.length === 1 ? "" : "s"
       } detected:`;
-      const lines = this.errors.map(
-        (err, idx) => `  ${idx + 1}. [${err.code}] ${err.variable || "GLOBAL"}: ${err.message}`
-      );
+      const lines = this.errors.map((err, idx) => {
+        const varPrefix = err.variable ? ` [${err.variable}]` : "";
+        const codePrefix = err.code ? ` (${err.code})` : "";
+        return `  ${idx + 1}.${varPrefix}${codePrefix} ${err.message}`;
+      });
       return [header, ...lines].join("\n");
     }
-    return `ConfigurationError [${this.code}] ${this.variable || ""}: ${this.message}`;
+    const varPrefix = this.variable ? ` [${this.variable}]` : "";
+    return `ConfigurationError${varPrefix} (${this.code}): ${this.message}`;
+  }
+
+  /**
+   * Serializes the error to a clean JSON representation.
+   */
+  toJSON() {
+    return {
+      name: this.name,
+      code: this.code,
+      message: this.message,
+      variable: this.variable,
+      expected: this.expected,
+      received: this.received,
+      errors: this.errors.map((e) => (typeof e.toJSON === "function" ? e.toJSON() : e)),
+    };
   }
 }
