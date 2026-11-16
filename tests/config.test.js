@@ -100,4 +100,84 @@ describe("defineConfig - Fail-Fast vs Collect Errors mode", () => {
       expect(config.API_URL).toBe("https://example.com/");
     });
   });
+
+  describe("environment profiles and precedence", () => {
+    it("follows precedence: .env -> .env.<profile> -> process.env / source", async () => {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const os = await import("node:os");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "env-guard-profile-"));
+
+      try {
+        // Base .env
+        fs.writeFileSync(
+          path.join(tmpDir, ".env"),
+          "PORT=3000\nDATABASE_URL=postgres://localhost/dev_db\nLOG_LEVEL=info\n"
+        );
+
+        // Production profile .env.production
+        fs.writeFileSync(
+          path.join(tmpDir, ".env.production"),
+          "PORT=8000\nDATABASE_URL=postgres://prod-server/prod_db\n"
+        );
+
+        // Test with profile = 'production', and explicit source override for PORT
+        const config = defineConfig(
+          {
+            PORT: { type: "number" },
+            DATABASE_URL: { type: "string" },
+            LOG_LEVEL: { type: "string" },
+          },
+          {
+            profile: "production",
+            envDir: tmpDir,
+            loadEnv: true,
+            source: {
+              PORT: "9000", // System env overrides both .env and .env.production
+            },
+          }
+        );
+
+        // PORT was overridden by system source (9000)
+        expect(config.PORT).toBe(9000);
+        // DATABASE_URL was overridden by .env.production
+        expect(config.DATABASE_URL).toBe("postgres://prod-server/prod_db");
+        // LOG_LEVEL came from base .env
+        expect(config.LOG_LEVEL).toBe("info");
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+
+    it("auto-detects profile from source.NODE_ENV when options.profile is not specified", async () => {
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const os = await import("node:os");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "env-guard-autoprofile-"));
+
+      try {
+        fs.writeFileSync(path.join(tmpDir, ".env"), "APP_ENV=local\n");
+        fs.writeFileSync(path.join(tmpDir, ".env.test"), "APP_ENV=in-test\n");
+
+        const config = defineConfig(
+          {
+            APP_ENV: { type: "string" },
+          },
+          {
+            envDir: tmpDir,
+            loadEnv: true,
+            source: {
+              NODE_ENV: "test",
+            },
+          }
+        );
+
+        expect(config.APP_ENV).toBe("in-test");
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+    });
+  });
 });

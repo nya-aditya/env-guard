@@ -9,7 +9,7 @@ export const SCHEMA_SYMBOL = Symbol.for("env-guard.schema");
  * Loads environment files in priority order for the given profile.
  * Precedence:
  * 1. Base .env
- * 2. Profile-specific .env.<profile> (if profile specified)
+ * 2. Profile-specific .env.<profile> (if profile specified or detected)
  * 3. System source / process.env (always takes top precedence over files)
  *
  * @param {object} options
@@ -20,22 +20,28 @@ export const SCHEMA_SYMBOL = Symbol.for("env-guard.schema");
  */
 export function loadEnvironmentSources(options = {}) {
   const envDir = options.envDir || process.cwd();
+  const source = options.source || process.env;
   const loaded = {};
+
+  // Detect profile from explicit option, source, or system env
+  const profile =
+    options.profile !== undefined
+      ? options.profile
+      : source.NODE_ENV || process.env.NODE_ENV;
 
   // 1. Base .env
   const baseEnvPath = path.join(envDir, ".env");
   const baseParsed = parseEnvFile(baseEnvPath);
   Object.assign(loaded, baseParsed);
 
-  // 2. Profile .env.<profile>
-  if (options.profile) {
-    const profilePath = path.join(envDir, `.env.${options.profile}`);
+  // 2. Profile .env.<profile> (e.g. .env.production, .env.development, .env.test)
+  if (profile && typeof profile === "string" && profile.trim()) {
+    const profilePath = path.join(envDir, `.env.${profile.trim()}`);
     const profileParsed = parseEnvFile(profilePath);
     Object.assign(loaded, profileParsed);
   }
 
   // 3. System process.env or provided source takes highest precedence
-  const source = options.source || process.env;
   for (const [key, val] of Object.entries(source)) {
     if (val !== undefined) {
       loaded[key] = val;
