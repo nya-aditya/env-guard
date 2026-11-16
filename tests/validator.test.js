@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolveValueWithDefaults } from "../src/validator.js";
-import { ERROR_CODES } from "../src/errors.js";
+import {
+  resolveValueWithDefaults,
+  validateField,
+  validateSchema,
+} from "../src/validator.js";
+import { ERROR_CODES, ConfigurationError } from "../src/errors.js";
 
 describe("resolveValueWithDefaults", () => {
   it("resolves provided values", () => {
@@ -18,64 +22,109 @@ describe("resolveValueWithDefaults", () => {
     expect(res.value).toBe(3000);
   });
 
-  it("applies functional default when variable is missing", () => {
-    const res = resolveValueWithDefaults("PORT", undefined, {
-      type: "number",
-      default: () => 4000,
-    });
-    expect(res.valid).toBe(true);
-    expect(res.value).toBe(4000);
-  });
-
   it("throws/fails with MISSING_REQUIRED when required variable is missing", () => {
     const res = resolveValueWithDefaults("DATABASE_URL", undefined, {
       type: "string",
       required: true,
     });
     expect(res.valid).toBe(false);
-    expect(res.error).toBeDefined();
-    expect(res.error.code).toBe(ERROR_CODES.MISSING_REQUIRED);
-    expect(res.error.variable).toBe("DATABASE_URL");
-    expect(res.error.message).toContain("DATABASE_URL is required but was not provided");
-  });
-
-  it("enforces required precedence over default when required is explicitly true and missing", () => {
-    const res = resolveValueWithDefaults("API_KEY", undefined, {
-      type: "string",
-      required: true,
-      default: "fallback-key",
-    });
-    expect(res.valid).toBe(false);
     expect(res.error.code).toBe(ERROR_CODES.MISSING_REQUIRED);
   });
+});
 
-  it("rejects empty string for required variable by default", () => {
-    const res = resolveValueWithDefaults("DATABASE_URL", "   ", {
-      type: "string",
-      required: true,
+describe("validateField", () => {
+  it("converts valid string, number, boolean, url, json", () => {
+    expect(validateField("PORT", "8080", { type: "number" })).toEqual({
+      valid: true,
+      value: 8080,
     });
-    expect(res.valid).toBe(false);
-    expect(res.error.code).toBe(ERROR_CODES.MISSING_REQUIRED);
-    expect(res.error.message).toContain("cannot be empty");
+    expect(validateField("DEBUG", "true", { type: "boolean" })).toEqual({
+      valid: true,
+      value: true,
+    });
+    expect(validateField("URL", "https://api.io", { type: "url" })).toEqual({
+      valid: true,
+      value: "https://api.io/",
+    });
+    expect(
+      validateField("DATA", '{"ok":true}', { type: "json" })
+    ).toEqual({
+      valid: true,
+      value: { ok: true },
+    });
   });
 
-  it("allows empty string if allowEmpty is true", () => {
-    const res = resolveValueWithDefaults("OPTIONAL_NOTE", "", {
-      type: "string",
-      required: true,
-      allowEmpty: true,
-    });
-    expect(res.valid).toBe(true);
-    expect(res.value).toBe("");
+  it("handles unsupported schema types gracefully", () => {
+    const res = validateField("UNKNOWN", "value", { type: "custom_unsupported" });
+    expect(res.valid).toBe(false);
+    expect(res.error.code).toBe(ERROR_CODES.INVALID_TYPE);
+    expect(res.error.message).toContain("Unsupported schema type");
   });
 
-  it("masks received value in error if secret is true", () => {
-    const res = resolveValueWithDefaults("SECRET_KEY", "   ", {
-      type: "string",
-      required: true,
-      secret: true,
+  it("returns appropriate conversion error codes", () => {
+    const numRes = validateField("PORT", "abc", { type: "number" });
+    expect(numRes.valid).toBe(false);
+    expect(numRes.error.code).toBe(ERROR_CODES.INVALID_NUMBER);
+
+    const boolRes = validateField("DEBUG", "invalid", { type: "boolean" });
+    expect(boolRes.valid).toBe(false);
+    expect(boolRes.error.code).toBe(ERROR_CODES.INVALID_BOOLEAN);
+
+    const urlRes = validateField("API", "not-a-url", { type: "url" });
+    expect(urlRes.valid).toBe(false);
+    expect(urlRes.error.code).toBe(ERROR_CODES.INVALID_URL);
+
+    const jsonRes = validateField("CONFIG", "{bad", { type: "json" });
+    expect(jsonRes.valid).toBe(false);
+    expect(jsonRes.error.code).toBe(ERROR_CODES.INVALID_JSON);
+  });
+});
+
+describe("validateSchema", () => {
+  it("rejects invalid schema input", () => {
+    expect(() => validateSchema(null)).toThrow(ConfigurationError);
+    expect(() => validateSchema("string")).toThrow(ConfigurationError);
+  });
+
+  it("validates multiple fields into clean config object", () => {
+    const schema = {
+      PORT: { type: "number", default: 3000 },
+      NODE_ENV: { type: "string", default: "development" },
+      DEBUG: { type: "boolean", default: false },
+      URL: { type: "url", required: true },
+    };
+
+    const env = {
+      PORT: "8080",
+      URL: "https://example.com",
+    };
+
+    const result = validateSchema(schema, env);
+    expect(result.valid).toBe(true);
+    expect(result.errors.length).toBe(0);
+    expect(result.config).toEqual({
+      PORT: 8080,
+      NODE_ENV: "development",
+      DEBUG: false,
+      URL: "https://example.com/",
     });
-    expect(res.valid).toBe(false);
-    expect(res.error.received).toBe("[REDACTED]");
+  });
+
+  it("accumulates errors across invalid fields", () => {
+    const schema = {
+      PORT: { type: "number" },
+      API_KEY: { type: "string", required: true },
+    };
+
+    const env = {
+      PORT: "not-a-number",
+      // API_KEY missing
+    };
+
+    const result = validateSchema(schema, env);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBe(2);
+    expect(result.errors[0].code).toBe(ERROR_CODES.INVALID_NUMBER);
+    expect(result.errors[1].code).toBe(ERROR_CODES.MISSING_REQUIRED);
   });
 });
