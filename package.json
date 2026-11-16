@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit --skipLibCheck src/index.d.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -56,6 +57,7 @@
     "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.15.0",
     "prettier": "^3.10.1",
+    "typescript": "^7.0.2",
     "vitest": "^5.1.0"
   }
 }
