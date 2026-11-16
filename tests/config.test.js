@@ -54,6 +54,25 @@ describe("defineConfig - Fail-Fast vs Collect Errors mode", () => {
         config.PORT = 4000;
       }).toThrow();
     });
+
+    it("allows unfrozen configuration when freeze: false", () => {
+      const config = defineConfig(
+        {
+          PORT: { type: "number", default: 3000 },
+        },
+        { source: {}, loadEnv: false, freeze: false }
+      );
+
+      expect(config.PORT).toBe(3000);
+      expect(Object.isFrozen(config)).toBe(false);
+      config.PORT = 5000;
+      expect(config.PORT).toBe(5000);
+    });
+
+    it("throws ConfigurationError when schema is invalid", () => {
+      expect(() => defineConfig(null)).toThrow(ConfigurationError);
+      expect(() => defineConfig(undefined)).toThrow(ConfigurationError);
+    });
   });
 
   describe("collect errors mode", () => {

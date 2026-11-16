@@ -30,6 +30,25 @@ describe("resolveValueWithDefaults", () => {
     expect(res.valid).toBe(false);
     expect(res.error.code).toBe(ERROR_CODES.MISSING_REQUIRED);
   });
+
+  it("applies functional default when variable is missing", () => {
+    const res = resolveValueWithDefaults("DYNAMIC_ID", undefined, {
+      type: "string",
+      default: () => "generated-id-123",
+    });
+    expect(res.valid).toBe(true);
+    expect(res.value).toBe("generated-id-123");
+  });
+
+  it("applies default when value is empty and useDefaultOnEmpty is true", () => {
+    const res = resolveValueWithDefaults("HOST", "", {
+      type: "string",
+      default: "127.0.0.1",
+      useDefaultOnEmpty: true,
+    });
+    expect(res.valid).toBe(true);
+    expect(res.value).toBe("127.0.0.1");
+  });
 });
 
 describe("validateField", () => {

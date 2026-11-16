@@ -78,4 +78,21 @@ describe("Secret masking", () => {
     expect(maskConfig(undefined)).toBeUndefined();
     expect(maskConfig("string")).toBe("string");
   });
+
+  it("copies nested non-secret objects and handles undefined secrets safely", () => {
+    const schema = {
+      SECRET: { type: "string", secret: true },
+      META: { type: "json" },
+    };
+
+    const config = {
+      SECRET: undefined,
+      META: { version: 1, tags: ["prod"] },
+    };
+
+    const masked = maskConfig(config, schema);
+    expect(masked.SECRET).toBeUndefined();
+    expect(masked.META).toEqual({ version: 1, tags: ["prod"] });
+    expect(masked.META).not.toBe(config.META); // new copy
+  });
 });

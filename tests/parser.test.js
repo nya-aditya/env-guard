@@ -106,6 +106,25 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
       EMPTY_QUOTED: "",
     });
   });
+
+  it("should parse backtick quoted strings", () => {
+    const src = "BACKTICK=`line 1\nline 2`";
+    expect(parseEnv(src)).toEqual({
+      BACKTICK: "line 1\nline 2",
+    });
+  });
+
+  it("should handle unclosed quotes gracefully", () => {
+    const src = 'UNCLOSED="hello without closing quote';
+    expect(parseEnv(src)).toEqual({
+      UNCLOSED: "hello without closing quote",
+    });
+  });
+
+  it("should skip invalid lines without keys", () => {
+    const src = "=value_without_key\n   \njust_a_word";
+    expect(parseEnv(src)).toEqual({});
+  });
 });
 
 describe("parseEnvFile", () => {
