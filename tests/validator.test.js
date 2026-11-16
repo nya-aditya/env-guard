@@ -182,6 +182,54 @@ describe("validateField", () => {
       expect(res.error.received).toBe("[REDACTED]");
     });
   });
+
+  describe("custom validator support", () => {
+    it("passes when custom validator returns true", () => {
+      const rule = {
+        type: "number",
+        validate: (v) => v % 2 === 0,
+      };
+      expect(validateField("PORT", "3000", rule).valid).toBe(true);
+    });
+
+    it("fails with custom message when validator returns string", () => {
+      const rule = {
+        type: "number",
+        validate: (v) => {
+          if (v % 2 !== 0) return "PORT must be an even number";
+          return true;
+        },
+      };
+      const res = validateField("PORT", "3001", rule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.CUSTOM_VALIDATION_FAILED);
+      expect(res.error.message).toBe("PORT must be an even number");
+    });
+
+    it("fails with default message when validator returns false", () => {
+      const rule = {
+        type: "number",
+        validate: () => false,
+      };
+      const res = validateField("PORT", "3000", rule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.CUSTOM_VALIDATION_FAILED);
+      expect(res.error.message).toContain("Custom validation failed for variable PORT");
+    });
+
+    it("handles thrown exceptions inside custom validator", () => {
+      const rule = {
+        type: "string",
+        validate: () => {
+          throw new Error("Validation subsystem offline");
+        },
+      };
+      const res = validateField("VAR", "hello", rule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.CUSTOM_VALIDATION_FAILED);
+      expect(res.error.message).toContain("Validation subsystem offline");
+    });
+  });
 });
 
 describe("validateSchema", () => {

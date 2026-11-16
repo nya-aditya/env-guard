@@ -257,6 +257,44 @@ export function validateField(key, rawValue, rule = {}) {
     }
   }
 
+  // Custom validator support
+  if (typeof rule.validate === "function") {
+    try {
+      const customResult = rule.validate(conversionResult.value);
+      if (customResult === false || typeof customResult === "string") {
+        const errorMsg =
+          typeof customResult === "string"
+            ? customResult
+            : `Custom validation failed for variable ${key}.`;
+
+        return {
+          valid: false,
+          error: new ConfigurationError(errorMsg, {
+            code: ERROR_CODES.CUSTOM_VALIDATION_FAILED,
+            variable: key,
+            expected: "Custom validation check to pass",
+            received: isSecret ? "[REDACTED]" : conversionResult.value,
+            secret: isSecret,
+          }),
+        };
+      }
+    } catch (err) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `Custom validator threw an exception for ${key}: ${err.message}`,
+          {
+            code: ERROR_CODES.CUSTOM_VALIDATION_FAILED,
+            variable: key,
+            expected: "Custom validation check to complete without error",
+            received: isSecret ? "[REDACTED]" : conversionResult.value,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+  }
+
   return { valid: true, value: conversionResult.value };
 }
 
