@@ -138,6 +138,65 @@ export function validateField(key, rawValue, rule = {}) {
     };
   }
 
+  // Validate enum if specified
+  if (Array.isArray(rule.enum)) {
+    if (!rule.enum.includes(conversionResult.value)) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `Invalid value for ${key}. Expected one of: ${rule.enum
+            .map((v) => JSON.stringify(v))
+            .join(", ")}, received: ${
+            isSecret ? "[REDACTED]" : JSON.stringify(conversionResult.value)
+          }`,
+          {
+            code: ERROR_CODES.INVALID_ENUM,
+            variable: key,
+            expected: rule.enum,
+            received: conversionResult.value,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+  }
+
+  // Validate range for numbers
+  if (type === "number") {
+    const num = conversionResult.value;
+    if (rule.min !== undefined && num < rule.min) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `Value for ${key} (${num}) is less than minimum allowed (${rule.min}).`,
+          {
+            code: ERROR_CODES.OUT_OF_RANGE,
+            variable: key,
+            expected: `>= ${rule.min}`,
+            received: num,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+
+    if (rule.max !== undefined && num > rule.max) {
+      return {
+        valid: false,
+        error: new ConfigurationError(
+          `Value for ${key} (${num}) exceeds maximum allowed (${rule.max}).`,
+          {
+            code: ERROR_CODES.OUT_OF_RANGE,
+            variable: key,
+            expected: `<= ${rule.max}`,
+            received: num,
+            secret: isSecret,
+          }
+        ),
+      };
+    }
+  }
+
   return { valid: true, value: conversionResult.value };
 }
 

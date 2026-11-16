@@ -78,6 +78,61 @@ describe("validateField", () => {
     expect(jsonRes.valid).toBe(false);
     expect(jsonRes.error.code).toBe(ERROR_CODES.INVALID_JSON);
   });
+
+  describe("enum validation", () => {
+    const enumRule = {
+      type: "string",
+      enum: ["development", "production", "test"],
+    };
+
+    it("accepts values inside enum", () => {
+      expect(validateField("NODE_ENV", "production", enumRule).valid).toBe(true);
+      expect(validateField("NODE_ENV", "test", enumRule).valid).toBe(true);
+    });
+
+    it("rejects values not in enum with INVALID_ENUM", () => {
+      const res = validateField("NODE_ENV", "staging123", enumRule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.INVALID_ENUM);
+      expect(res.error.message).toContain("Expected one of");
+      expect(res.error.received).toBe("staging123");
+    });
+  });
+
+  describe("range validation", () => {
+    const portRule = {
+      type: "number",
+      min: 1,
+      max: 65535,
+    };
+
+    it("accepts numbers within range [min, max]", () => {
+      expect(validateField("PORT", "3000", portRule).valid).toBe(true);
+      expect(validateField("PORT", "1", portRule).valid).toBe(true);
+      expect(validateField("PORT", "65535", portRule).valid).toBe(true);
+    });
+
+    it("rejects numbers below min with OUT_OF_RANGE", () => {
+      const res = validateField("PORT", "0", portRule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.OUT_OF_RANGE);
+      expect(res.error.message).toContain("less than minimum");
+    });
+
+    it("rejects numbers above max with OUT_OF_RANGE", () => {
+      const res = validateField("PORT", "70000", portRule);
+      expect(res.valid).toBe(false);
+      expect(res.error.code).toBe(ERROR_CODES.OUT_OF_RANGE);
+      expect(res.error.message).toContain("exceeds maximum");
+    });
+
+    it("supports standalone min or max constraints", () => {
+      expect(validateField("CONN", "5", { type: "number", min: 1 }).valid).toBe(true);
+      expect(validateField("CONN", "-2", { type: "number", min: 1 }).valid).toBe(false);
+      expect(validateField("CONN", "50", { type: "number", max: 100 }).valid).toBe(true);
+      expect(validateField("CONN", "150", { type: "number", max: 100 }).valid).toBe(false);
+    });
+  });
 });
 
 describe("validateSchema", () => {
