@@ -32,7 +32,7 @@ console.log(process.env); // Leaks credentials to logs!
 
 ```js
 // ✅ With env-guard
-import { defineConfig, safeView } from "env-guard";
+import { defineConfig, safeView } from "@nya-aditya/env-guard";
 
 const config = defineConfig({
   PORT: { type: "number", default: 3000, min: 1024, max: 65535 },
@@ -63,7 +63,7 @@ console.log(safeView(config)); // { PORT: 3000, DEBUG: false, DATABASE_URL: '***
 ## Installation
 
 ```bash
-npm install env-guard
+npm install @nya-aditya/env-guard
 ```
 
 ---
@@ -83,7 +83,7 @@ DATABASE_URL=postgres://user:secret@localhost:5432/app
 Import `defineConfig` in your application entrypoint:
 
 ```js
-import { defineConfig, safeView } from "env-guard";
+import { defineConfig, safeView } from "@nya-aditya/env-guard";
 
 export const config = defineConfig({
   PORT: {
@@ -284,7 +284,7 @@ Never leak secrets into logs. When a variable is designated `secret: true`:
 2. It is redacted as `[REDACTED]` in validation error messages and stack traces.
 
 ```js
-import { defineConfig, safeView, maskConfig } from "env-guard";
+import { defineConfig, safeView, maskConfig } from "@nya-aditya/env-guard";
 
 const config = defineConfig({
   API_SECRET: { type: "string", required: true, secret: true },

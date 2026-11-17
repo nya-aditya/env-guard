@@ -1,7 +1,10 @@
 {
-  "name": "env-guard",
+  "name": "@nya-aditya/env-guard",
   "version": "1.0.0",
   "description": "Schema-based environment configuration and validation for Node.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./src/index.cjs",
   "module": "./src/index.js",

@@ -33,7 +33,7 @@ describe("npm pack and external consumption", () => {
       });
 
       const verificationScript = `
-        import { defineConfig, safeView } from "env-guard";
+        import { defineConfig, safeView } from "${packMeta.name}";
         import assert from "node:assert";
 
         const config = defineConfig({
@@ -59,7 +59,7 @@ describe("npm pack and external consumption", () => {
 
       // Also test CommonJS require() interop
       const cjsVerificationScript = `
-        const { defineConfig, safeView } = require("env-guard");
+        const { defineConfig, safeView } = require("${packMeta.name}");
         const assert = require("node:assert");
 
         const config = defineConfig({
